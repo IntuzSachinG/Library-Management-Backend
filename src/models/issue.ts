@@ -1,18 +1,29 @@
-import { Model, DataTypes, CreationOptional, InferAttributes, InferCreationAttributes } from 'sequelize';
-import {sequelize} from '../config/database';
-import { IssueAttributes, IssueCreationAttributes } from '../interface/issueInterface';
+import {
+  Model,
+  DataTypes,
+  CreationOptional,
+  InferAttributes,
+  InferCreationAttributes,
+} from "sequelize";
+import { sequelize } from "../config/database";
+import {
+  IssueAttributes,
+  IssueCreationAttributes,
+} from "../interface/issueInterface";
+// import { User } from "./user";
+// import { Book } from "./book";
 
-
-
-
-export class Issue extends Model<IssueAttributes, IssueCreationAttributes> implements IssueAttributes {
+export class Issue
+  extends Model<IssueAttributes, IssueCreationAttributes>
+  implements IssueAttributes
+{
   public id!: string;
   public bookId?: string;
   public userId?: string;
   public issueDate?: Date;
   public returnDate?: Date | null;
 
-   public readonly created_at!: Date;
+  public readonly created_at!: Date;
   public readonly updated_at!: Date;
   public readonly deleted_at!: Date | null;
 }
@@ -20,20 +31,20 @@ export class Issue extends Model<IssueAttributes, IssueCreationAttributes> imple
 Issue.init(
   {
     id: {
-     type: DataTypes.UUID,
+      type: DataTypes.UUID,
       primaryKey: true,
       defaultValue: DataTypes.UUIDV4,
       allowNull: false,
     },
     bookId: {
-      type:DataTypes.UUID,
-      
-      references: { model: 'books', key: 'id' },
+      type: DataTypes.UUID,
+
+      references: { model: "books", key: "id" },
     },
     userId: {
       type: DataTypes.UUID,
-   
-      references: { model: 'users', key: 'id' },
+
+      references: { model: "users", key: "id" },
     },
     issueDate: {
       type: DataTypes.DATE,
@@ -47,14 +58,11 @@ Issue.init(
   },
   {
     sequelize,
-    tableName: 'issues',
+    tableName: "issues",
     timestamps: true,
     paranoid: true,
     createdAt: "created_at",
     updatedAt: "updated_at",
     deletedAt: "deleted_at",
-    
-  }
+  },
 );
-
-

@@ -12,6 +12,9 @@ export class Book
   public id!: string;
   public title!: string;
   public author!: string;
+  public image!: string;
+  public description!: string;
+  public quantity!: number;
   public status?: string;
 
   public readonly created_at!: Date;
@@ -33,6 +36,18 @@ Book.init(
     },
     author: {
       type: DataTypes.STRING,
+      allowNull: false,
+    },
+    image: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    description: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+    },
+    quantity: {
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
     status: {

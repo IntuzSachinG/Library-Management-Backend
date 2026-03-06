@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js"
@@ -13,8 +13,10 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
     "@types/express": "^5.0.6",
-    "@types/node": "^25.3.3",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^25.3.5",
     "@types/sequelize": "^4.28.20",
     "sequelize-cli": "^6.6.5",
     "ts-node": "^10.9.2",
@@ -22,9 +24,13 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
-    "mysql2": "^3.18.2",
+    "express-validator": "^7.3.1",
+    "jsonwebtoken": "^9.0.3",
+    "mysql2": "^3.19.0",
     "sequelize": "^6.37.7",
     "uuid": "^13.0.0"
   }

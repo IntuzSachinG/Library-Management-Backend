@@ -4,6 +4,9 @@ export interface BookAttributes {
   id: string;
   title: string;
   author: string;
+  image: string;
+  description: string;
+  quantity: number;
   status?: string;
   created_at?: Date;
   updated_at?: Date;
@@ -13,4 +16,4 @@ export interface BookAttributes {
 export interface BookCreationAttributes extends Optional<
   BookAttributes,
   "id"
-> {}
+> {} 
