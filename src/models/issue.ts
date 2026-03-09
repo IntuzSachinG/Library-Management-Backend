@@ -1,28 +1,23 @@
-import {
-  Model,
-  DataTypes,
-  CreationOptional,
-  InferAttributes,
-  InferCreationAttributes,
-} from "sequelize";
+import { Model, DataTypes } from "sequelize";
 import { sequelize } from "../config/database";
 import {
   IssueAttributes,
   IssueCreationAttributes,
 } from "../interface/issueInterface";
-// import { User } from "./user";
-// import { Book } from "./book";
 
 export class Issue
   extends Model<IssueAttributes, IssueCreationAttributes>
   implements IssueAttributes
 {
   public id!: string;
-  public bookId?: string;
-  public userId?: string;
-  public issueDate?: Date;
+  // update this
+  public bookId!: string;
+  // update this
+  public userId!: string;
+  public issueDate!: Date;
   public returnDate?: Date | null;
-
+  // update this
+  public status!: "issued" | "returned";
   public readonly created_at!: Date;
   public readonly updated_at!: Date;
   public readonly deleted_at!: Date | null;
@@ -38,12 +33,12 @@ Issue.init(
     },
     bookId: {
       type: DataTypes.UUID,
-
+      allowNull: false,
       references: { model: "books", key: "id" },
     },
     userId: {
       type: DataTypes.UUID,
-
+      allowNull: false,
       references: { model: "users", key: "id" },
     },
     issueDate: {
@@ -54,6 +49,12 @@ Issue.init(
     returnDate: {
       type: DataTypes.DATE,
       allowNull: true,
+    },
+
+    status: {
+      type: DataTypes.ENUM("issued", "returned"),
+      allowNull: false,
+      defaultValue: "issued",
     },
   },
   {

@@ -12,12 +12,17 @@ export class User
   public id!: string;
   public name!: string;
   public email!: string;
-  public mobile!: string;
-  public password?: string;
-  public gender?: string;
+  // update this
+  public mobile?: string;
+  // update this
+  public password!: string;
+  // update this
+  public gender?: "male" | "female" | "other";
   public birthdate?: Date;
-  public status?: string;
-  public role?: string;
+  // update this
+  public status?: "active" | "inactive";
+  // update this
+  public role?: "student" | "admin";
 
   public readonly created_at!: Date;
   public readonly updated_at!: Date;
@@ -41,45 +46,48 @@ User.init(
       allowNull: false,
       unique: true,
     },
-
+    // update this
     mobile: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
       unique: true,
       validate: {
         isNumeric: true,
-        len: [1, 10],
+        len: [10, 10],
       },
     },
-
+    // update this
     password: {
       type: DataTypes.STRING,
       allowNull: false,
+      validate: {
+        notEmpty: true,
+      },
     },
+    // update this
     gender: {
-      type: DataTypes.STRING,
+      type: DataTypes.ENUM("male", "female", "other"),
       allowNull: false,
-      defaultValue: "male",
     },
+    // update this
     birthdate: {
       type: DataTypes.DATEONLY,
       allowNull: false,
       validate: {
         isDate: true,
-        isBefore: new Date().toISOString().split("T")[0],
       },
     },
-
+    // update this
     status: {
-      type: DataTypes.STRING,
+      type: DataTypes.ENUM("active", "inactive"),
       allowNull: false,
       defaultValue: "active",
     },
-
+    // update this
     role: {
-      type: DataTypes.STRING,
+      type: DataTypes.ENUM("student", "admin"),
       allowNull: false,
-      defaultValue: "user",
+      defaultValue: "student",
     },
   },
   {

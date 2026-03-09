@@ -7,7 +7,8 @@ export interface BookAttributes {
   image: string;
   description: string;
   quantity: number;
-  status?: string;
+  // update this
+  status?: "available" | "unavailable";
   created_at?: Date;
   updated_at?: Date;
   deleted_at?: Date | null;
@@ -16,4 +17,4 @@ export interface BookAttributes {
 export interface BookCreationAttributes extends Optional<
   BookAttributes,
   "id"
-> {} 
+> {}

@@ -15,7 +15,8 @@ export class Book
   public image!: string;
   public description!: string;
   public quantity!: number;
-  public status?: string;
+  // update this
+  public status?: "available" | "unavailable";
 
   public readonly created_at!: Date;
   public readonly updated_at!: Date;
@@ -46,12 +47,18 @@ Book.init(
       type: DataTypes.TEXT,
       allowNull: false,
     },
+    // update this
     quantity: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      validate: {
+        min: 0,
+        isInt: true,
+      },
     },
+    // update this
     status: {
-      type: DataTypes.STRING,
+      type: DataTypes.ENUM("available", "unavailable"),
       allowNull: false,
       defaultValue: "available",
     },

@@ -4,12 +4,16 @@ export interface UserAttributes {
   id: string;
   name: string;
   email: string;
-  mobile: string;
-  password?: string;
-  gender?: string;
+  // update this
+  mobile?: string;
+  //update this
+  password: string;
+  // update this
+  gender?: "male" | "female" | "other";
   birthdate?: Date;
-  status?: string;
-  role?: string;
+  status?: "active" | "inactive";
+  // update this
+  role?: "student" | "admin";
   created_at?: Date;
   updated_at?: Date;
   deleted_at?: Date | null;

@@ -1,14 +1,9 @@
-import express from "express";
+import { Router } from "express";
 import { register, login } from "../controllers/authController";
-import { authenticate } from "../middlewares/authMiddleware";
-import { adminOnly } from "../middlewares/roleMiddleware";
+import { validate } from "../middlewares/validationMiddleware";
+const router = Router();
 
-const router = express.Router();
-
-router.post("/register", register);
-
-router.post("/login", login);
-
-router.get("/admin", authenticate, adminOnly);
+router.post("/register", validate, register);
+router.post("/login", validate,login);
 
 export default router;
