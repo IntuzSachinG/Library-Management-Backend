@@ -1,13 +1,8 @@
-import { NextFunction, Request, Response } from "express";
+import { Request, Response } from "express";
 import { User, Issue, Book } from "../models";
 import { Op } from "sequelize";
 
-
-export const getUsers = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
+export const getUsers = async (req: Request, res: Response) => {
   try {
     const {
       page = "1",
@@ -92,7 +87,10 @@ export const getUsers = async (
       data: rows,
     });
   } catch (error) {
-    next(error);
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong",
+    });
   }
 };
 

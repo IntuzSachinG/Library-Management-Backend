@@ -1,12 +1,9 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { Book } from "../models";
 import { Op } from "sequelize";
+import cloudinary from "../config/cloudinary";
 
-export const getBooks = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
+export const getBooks = async (req: Request, res: Response) => {
   try {
     const {
       page = "1",
@@ -90,7 +87,10 @@ export const getBooks = async (
       data: rows,
     });
   } catch (error) {
-    next(error);
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong",
+    });
   }
 };
 
@@ -113,8 +113,20 @@ export const getBookById = async (req: Request, res: Response) => {
   });
 };
 
-export const createBook = async (req: Request, res: Response) => {
-  const book = await Book.create(req.body);
+export const createBook = async (req: any, res: Response) => {
+    const{title,author,description,quantity,status} = req.body;
+
+ const result = await cloudinary.uploader.upload(req.file.path);
+
+  // const book = await Book.create(req.body);
+    const book = await Book.create({
+      title,
+      author,
+      image:result.secure_url,
+      description,
+      quantity,
+      status
+    });
 
   res.status(201).json({
     success: true,

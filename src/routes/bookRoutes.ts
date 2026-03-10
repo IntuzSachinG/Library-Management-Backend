@@ -1,4 +1,5 @@
 import { Router } from "express";
+import multer from "multer";
 import {
   createBook,
   getBooks,
@@ -9,10 +10,16 @@ import { authenticate } from "../middlewares/authMiddleware";
 import { adminOnly } from "../middlewares/roleMiddleware";
 
 import { validate } from "../middlewares/validationMiddleware";
+import { bookValidator } from "../validators/bookValidator";
 
 
 const router = Router();
-router.post("/", authenticate, adminOnly,  validate, createBook);
+
+const upload = multer({ dest: "uploads/" });
+
+
+router.post("/", authenticate, adminOnly, 
+   upload.single("image"),bookValidator, validate, createBook);
 router.get("/", authenticate, getBooks);
 // router.get("/", getBooks);
 router.put("/:id", authenticate, adminOnly, validate, updateBook);

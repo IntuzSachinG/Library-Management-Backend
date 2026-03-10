@@ -5,7 +5,7 @@ import { generateToken } from "../utils/jwt";
 
 export const register = async (req: Request, res: Response) => {
   try {
-    const { name, email, password, gender, birthdate } = req.body;
+    const { name, email, password, mobile, gender, birthdate } = req.body;
 
     const existing = await User.findOne({ where: { email } });
 
@@ -22,6 +22,7 @@ export const register = async (req: Request, res: Response) => {
       name,
       email,
       password: hashed,
+      mobile,
       gender,
       birthdate,
     });
@@ -32,7 +33,6 @@ export const register = async (req: Request, res: Response) => {
       success: true,
       message: "User registered successfully",
       user,
-    
     });
   } catch (error) {
     res.status(500).json({
@@ -60,7 +60,7 @@ export const login = async (req: Request, res: Response) => {
     if (!match) {
       return res.status(400).json({
         success: false,
-        message: "Invalid credentials",
+        message: "Invalid Credentials",
       });
     }
 

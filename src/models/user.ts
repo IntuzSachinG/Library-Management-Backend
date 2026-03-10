@@ -53,7 +53,8 @@ User.init(
       unique: true,
       validate: {
         isNumeric: true,
-        len: [10, 10],
+        // len: [10, 10],
+        is: /^\+?[1-9]\d{1,14}$/,
       },
     },
     // update this
