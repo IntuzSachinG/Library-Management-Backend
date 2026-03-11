@@ -1,3 +1,4 @@
+import { Router } from "express";
 import {
   issueBook,
   returnBook,
@@ -9,7 +10,6 @@ import {
   returnBookValidator,
 } from "../validators/issueValidator";
 import { validate } from "../middlewares/validationMiddleware";
-import { Router } from "express";
 
 const router = Router();
 

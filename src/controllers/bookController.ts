@@ -3,12 +3,39 @@ import { Book } from "../models";
 import { Op } from "sequelize";
 import cloudinary from "../config/cloudinary";
 
+export const createBook = async (req: Request, res: Response) => {
+  try {
+    const { title, author, description, quantity, status } = req.body;
+
+    const result = await cloudinary.uploader.upload(req.file!.path);
+
+    const book = await Book.create({
+      title,
+      author,
+      image: result.secure_url,
+      description,
+      quantity,
+      status,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Book created successfully",
+      data: book,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong",
+    });
+  }
+};
+
 export const getBooks = async (req: Request, res: Response) => {
   try {
     const {
       page = "1",
       limit = "10",
-      status,
       search,
       sort_by = "created_at",
       order = "desc",
@@ -37,16 +64,6 @@ export const getBooks = async (req: Request, res: Response) => {
       deleted_at: null,
     };
 
-    if (status !== undefined) {
-      if (!status) {
-        return res.status(400).json({
-          success: false,
-          message: "Status Cannot be empty",
-        });
-      }
-      whereCondition.status = status;
-    }
-
     if (search) {
       whereCondition[Op.or] = [
         {
@@ -55,10 +72,41 @@ export const getBooks = async (req: Request, res: Response) => {
         {
           author: { [Op.like]: `%${search}%` },
         },
+        {
+          created_at: { [Op.like]: `%${search}%` },
+        },
+        {
+          id: { [Op.like]: `%${search}%` },
+        },
+        {
+          image: { [Op.like]: `%${search}%` },
+        },
+        {
+          description: { [Op.like]: `%${search}%` },
+        },
+        {
+          quantity: { [Op.like]: `%${search}%` },
+        },
+        {
+          status: { [Op.like]: `%${search}%` },
+        },
+        {
+          updated_at: { [Op.like]: `%${search}%` },
+        },
       ];
     }
 
-    const allowedSortFields = ["title", "author", "created_at"];
+    const allowedSortFields = [
+      "title",
+      "author",
+      "created_at",
+      "id",
+      "image",
+      "description",
+      "quantity",
+      "status",
+      "updated_at",
+    ];
     const sortField = allowedSortFields.includes(sort_by as string)
       ? sort_by
       : "created_at";
@@ -95,83 +143,82 @@ export const getBooks = async (req: Request, res: Response) => {
 };
 
 export const getBookById = async (req: Request, res: Response) => {
-  const id = String(req.params.id);
+  try {
+    const id = String(req.params.id);
 
-  const book = await Book.findByPk(id);
+    const book = await Book.findByPk(id);
 
-  if (!book) {
-    return res.status(404).json({
+    if (!book) {
+      return res.status(404).json({
+        success: false,
+        message: "Book not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Book fetched successfully",
+      data: book,
+    });
+  } catch (error) {
+    res.status(500).json({
       success: false,
-      message: "Book not found",
+      message: "Something went wrong",
     });
   }
-
-  res.json({
-    success: true,
-    message: "Book fetched successfully",
-    data: book,
-  });
-};
-
-export const createBook = async (req: any, res: Response) => {
-    const{title,author,description,quantity,status} = req.body;
-
- const result = await cloudinary.uploader.upload(req.file.path);
-
-  // const book = await Book.create(req.body);
-    const book = await Book.create({
-      title,
-      author,
-      image:result.secure_url,
-      description,
-      quantity,
-      status
-    });
-
-  res.status(201).json({
-    success: true,
-    message: "Book created successfully",
-    data: book,
-  });
 };
 
 export const updateBook = async (req: Request, res: Response) => {
-  const id = String(req.params.id);
+  try {
+    const id = String(req.params.id);
 
-  const book = await Book.findByPk(id);
+    const book = await Book.findByPk(id);
 
-  if (!book) {
-    return res.status(404).json({
+    if (!book) {
+      return res.status(404).json({
+        success: false,
+        message: "Book not found",
+      });
+    }
+
+    await book.update(req.body);
+
+    res.json({
+      success: true,
+      message: "Book updated successfully",
+      data: book,
+    });
+  } catch (error) {
+    res.status(500).json({
       success: false,
-      message: "Book not found",
+      message: "Something went wrong",
     });
   }
-
-  await book.update(req.body);
-
-  res.json({
-    success: true,
-    message: "Book updated successfully",
-    data: book,
-  });
 };
 
 export const deleteBook = async (req: Request, res: Response) => {
-  const id = String(req.params.id);
+  try {
+    const id = String(req.params.id);
 
-  const book = await Book.findByPk(id);
+    const book = await Book.findByPk(id);
 
-  if (!book) {
-    return res.status(404).json({
+    if (!book) {
+      return res.status(404).json({
+        success: false,
+        message: "Book not found",
+      });
+    }
+
+    await book.destroy();
+
+    res.json({
+      success: true,
+      message: "Book deleted successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
       success: false,
-      message: "Book not found",
+      message: "Something went wrong",
     });
   }
-
-  await book.destroy();
-
-  res.json({
-    success: true,
-    message: "Book deleted successfully",
-  });
 };

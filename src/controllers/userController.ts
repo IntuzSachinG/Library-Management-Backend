@@ -7,8 +7,6 @@ export const getUsers = async (req: Request, res: Response) => {
     const {
       page = "1",
       limit = "10",
-      // status,
-      role,
       search,
       sort_by = "created_at",
       order = "desc",
@@ -37,16 +35,6 @@ export const getUsers = async (req: Request, res: Response) => {
       deleted_at: null,
     };
 
-    if (role !== undefined) {
-      if (!role) {
-        return res.status(400).json({
-          success: false,
-          message: "Role Cannot be empty",
-        });
-      }
-      whereCondition.role = role;
-    }
-
     if (search) {
       whereCondition[Op.or] = [
         {
@@ -55,10 +43,39 @@ export const getUsers = async (req: Request, res: Response) => {
         {
           email: { [Op.like]: `%${search}%` },
         },
+
+        {
+          id: { [Op.like]: `%${search}%` },
+        },
+        {
+          mobile: { [Op.like]: `%${search}%` },
+        },
+        {
+          gender: { [Op.like]: `%${search}%` },
+        },
+        {
+          birthdate: { [Op.like]: `%${search}%` },
+        },
+        {
+          status: { [Op.like]: `%${search}%` },
+        },
+        {
+          role: { [Op.like]: `%${search}%` },
+        },
       ];
     }
 
-    const allowedSortFields = ["name", "email", "created_at"];
+    const allowedSortFields = [
+      "name",
+      "email",
+      "created_at",
+      "id",
+      "mobile",
+      "gender",
+      "birthdate",
+      "status",
+      "role",
+    ];
     const sortField = allowedSortFields.includes(sort_by as string)
       ? sort_by
       : "created_at";
@@ -95,92 +112,120 @@ export const getUsers = async (req: Request, res: Response) => {
 };
 
 export const getUserWithBooks = async (req: Request, res: Response) => {
-  const id = String(req.params.id);
+  try {
+    const id = String(req.params.id);
 
-  const user = await User.findByPk(id, {
-    attributes: { exclude: ["password"] },
-    include: [
-      {
-        model: Issue,
-        as: "issues",
-        include: [{ model: Book, as: "book" }],
-      },
-    ],
-  });
+    const user = await User.findByPk(id, {
+      attributes: { exclude: ["password"] },
+      include: [
+        {
+          model: Issue,
+          as: "issues",
+          include: [{ model: Book, as: "book" }],
+        },
+      ],
+    });
 
-  if (!user) {
-    return res.status(404).json({
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "User fetched successfully",
+      data: user,
+    });
+  } catch (error) {
+    res.status(500).json({
       success: false,
-      message: "User not found",
+      message: "Something went wrong",
     });
   }
-
-  res.json({
-    success: true,
-    message: "User fetched successfully",
-    data: user,
-  });
 };
 
 export const updateUser = async (req: Request, res: Response) => {
-  const id = String(req.params.id);
+  try {
+    const id = String(req.params.id);
 
-  const user = await User.findByPk(id);
+    const user = await User.findByPk(id);
 
-  if (!user) {
-    return res.status(404).json({
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    await user.update(req.body);
+
+    res.json({
+      success: true,
+      message: "User updated successfully",
+      data: user,
+    });
+  } catch (error) {
+    res.status(500).json({
       success: false,
-      message: "User not found",
+      message: "Something went wrong",
     });
   }
-
-  await user.update(req.body);
-
-  res.json({
-    success: true,
-    message: "User updated successfully",
-    data: user,
-  });
 };
 
 export const updateUserStatus = async (req: Request, res: Response) => {
-  const id = String(req.params.id);
+  try {
+    const id = String(req.params.id);
 
-  const user = await User.findByPk(id);
+    const user = await User.findByPk(id);
 
-  if (!user) {
-    return res.status(404).json({
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    user.status = req.body.status;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: "Status updated successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
       success: false,
-      message: "User not found",
+      message: "Something went wrong",
     });
   }
-
-  user.status = req.body.status;
-
-  await user.save();
-
-  res.json({
-    success: true,
-    message: "Status updated successfully",
-  });
 };
 
 export const deleteUser = async (req: Request, res: Response) => {
-  const id = String(req.params.id);
+  try {
+    const id = String(req.params.id);
 
-  const user = await User.findByPk(id);
+    const user = await User.findByPk(id);
 
-  if (!user) {
-    return res.status(404).json({
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    await user.destroy();
+
+    res.json({
+      success: true,
+      message: "User deleted successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
       success: false,
-      message: "User not found",
+      message: "Something went wrong",
     });
   }
-
-  await user.destroy();
-
-  res.json({
-    success: true,
-    message: "User deleted successfully",
-  });
 };

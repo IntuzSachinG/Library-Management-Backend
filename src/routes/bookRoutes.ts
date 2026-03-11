@@ -11,17 +11,21 @@ import { adminOnly } from "../middlewares/roleMiddleware";
 
 import { validate } from "../middlewares/validationMiddleware";
 import { bookValidator } from "../validators/bookValidator";
-
+const upload = require("../middlewares/uploadMiddleware");
 
 const router = Router();
 
-const upload = multer({ dest: "uploads/" });
+router.post(
+  "/",
+  authenticate,
+  adminOnly,
+  upload.single("image"),
+  bookValidator,
+  validate,
+  createBook,
+);
 
-
-router.post("/", authenticate, adminOnly, 
-   upload.single("image"),bookValidator, validate, createBook);
-router.get("/", authenticate, getBooks);
-// router.get("/", getBooks);
+router.get("/", getBooks);
 router.put("/:id", authenticate, adminOnly, validate, updateBook);
 router.delete("/:id", authenticate, adminOnly, deleteBook);
 

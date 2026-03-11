@@ -23,7 +23,7 @@ export const registerValidator = [
   body("birthdate").isDate(),
 ];
 
-export const loginValidator = [
+export const authValidator = [
   body("email").isEmail().notEmpty().withMessage("E-mail Is Compulsory"),
   body("password").notEmpty().withMessage("Password Is Compulsory"),
 ];
