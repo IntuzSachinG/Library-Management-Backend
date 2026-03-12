@@ -1,18 +1,22 @@
 import { Request, Response } from "express";
 import { Book } from "../models";
-import { Op } from "sequelize";
-import cloudinary from "../config/cloudinary";
+import { Op, WhereOptions } from "sequelize";
+// import cloudinary from "../config/cloudinary";
+// const fs = require("fs");
+// const path = require("path");
 
 export const createBook = async (req: Request, res: Response) => {
   try {
     const { title, author, description, quantity, status } = req.body;
 
-    const result = await cloudinary.uploader.upload(req.file!.path);
+    // const result = await cloudinary.uploader.upload(req.file!.path);
+    //  const result = await upload(req.file!.path);
 
     const book = await Book.create({
       title,
       author,
-      image: result.secure_url,
+      // image: result.secure_url,
+      image: req.file!.filename,
       description,
       quantity,
       status,

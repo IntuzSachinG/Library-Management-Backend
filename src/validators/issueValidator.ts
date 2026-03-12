@@ -1,11 +1,11 @@
 import { body } from "express-validator";
 
 export const issueBookValidator = [
-  body("userId")
-    .notEmpty()
-    .withMessage("User ID is required")
-    .isUUID()
-    .withMessage("User ID must be a valid UUID"),
+  // body("userId")
+  //   .notEmpty()
+  //   .withMessage("User ID is required")
+  //   .isUUID()
+  //   .withMessage("User ID must be a valid UUID"),
 
   body("bookId")
     .notEmpty()

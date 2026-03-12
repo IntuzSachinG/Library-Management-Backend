@@ -111,6 +111,25 @@ export const getUsers = async (req: Request, res: Response) => {
   }
 };
 
+export const userdetail = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params
+
+        const userDetail = await User.findByPk(id as string);
+        return res.status(200).json({
+            success: true,
+            message: "user fetched successfully",
+            data: userDetail,
+        })
+    } catch (error) {
+        return res.status(500).json({
+            succee: false,
+            message: 'failed to fetch user',
+            error,
+        })
+    }
+}
+
 export const getUserWithBooks = async (req: Request, res: Response) => {
   try {
     const id = String(req.params.id);

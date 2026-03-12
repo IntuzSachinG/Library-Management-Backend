@@ -6,6 +6,7 @@ import userRoutes from "./routes/userRoutes";
 import bookRoutes from "./routes/bookRoutes";
 import issueRoutes from "./routes/issueRoutes"
 import bodyParser from "body-parser";
+import { notFoundHandler } from "./middlewares/notFoundMiddleware";
 
 
 dotenv.config();
@@ -21,6 +22,8 @@ app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 app.use("/books", bookRoutes);
 app.use("/issues",issueRoutes);
+
+app.use(notFoundHandler);
 
 
 export default app;

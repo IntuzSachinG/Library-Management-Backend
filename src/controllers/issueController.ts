@@ -4,10 +4,15 @@ import { Op } from "sequelize";
 
 export const issueBook = async (req: Request, res: Response) => {
   try {
-    const { userId, bookId } = req.body;
+    // const { userId, bookId } = req.body;
+
+    const userId = req.user.id;
+
+    const{bookId} = req.body;
 
     const issuedCount = await Issue.count({
       where: { userId, status: "issued" },
+      //  where: {  status: "issued" },
     });
 
     if (issuedCount >= 3) {
@@ -49,7 +54,7 @@ export const returnBook = async (req: Request, res: Response) => {
         message: "Issue record not found",
       });
     }
-
+    
     issue.status = "returned";
     issue.returnDate = new Date();
 
@@ -132,17 +137,18 @@ export const getUserIssues = async (req: Request, res: Response) => {
     }
 
     const { count, rows } = await Issue.findAndCountAll({
-      where: {
-        ...whereCondition,
-        userId: req.user.id,
-      },
-      include: [
-        {
-          model: Book,
-          as: "book",
-          attributes: ["id", "title"],
-        },
-      ],
+      // where: {
+      //   ...whereCondition,
+      //   userId: req.user.id,
+      // },
+      where: whereCondition,
+      // include: [
+      //   {
+      //     model: Book,
+      //     as: "book",
+      //     attributes: ["id", "title"],
+      //   },
+      // ],
 
       limit: limitNumber,
       offset,
@@ -156,6 +162,38 @@ export const getUserIssues = async (req: Request, res: Response) => {
       page: pageNumber,
       totalPages: Math.ceil(count / limitNumber),
       data: rows,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong",
+    });
+  }
+};
+
+export const getMyIssues = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user.id;
+
+    const issues = await Issue.findAll({
+      where: {
+        userId: userId,
+        deleted_at: null,
+      },
+      include: [
+        {
+          model: Book,
+          as: "book",
+          attributes: ["id", "title", "image", "author"],
+        },
+      ],
+      order: [["created_at", "DESC"]],
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "User issues fetched successfully",
+      data: issues,
     });
   } catch (error) {
     res.status(500).json({

@@ -2,13 +2,13 @@ import { body } from "express-validator";
 
 export const bookValidator = [
   body("title")
-    .matches(/^[^0-9]+$/)
-    .withMessage("Name cannot contain numbers")
+    // .matches(/^[^0-9]+$/)
+    // .withMessage("Name cannot contain numbers")
     .notEmpty()
     .withMessage("Title value cannot be empty"),
   body("author")
-    .matches(/^[^0-9]+$/)
-    .withMessage("Name cannot contain numbers")
+    // .matches(/^[^0-9]+$/)
+    // .withMessage("Name cannot contain numbers")
     .notEmpty()
     .withMessage("author cannot be empty"),
   body("image").custom((value, { req }) => {
@@ -20,7 +20,7 @@ export const bookValidator = [
   body("description").notEmpty(),
   body("quantity")
     .notEmpty()
-    .isInt({ min: 0 })
-    .withMessage("Quantity Cannot be Negative"),
+    .isInt({ min: 1 })
+    .withMessage("Quantity Cannot be Zero or Less than Zero"),
   body("status").optional().isIn(["available", "unavailable"]),
 ];

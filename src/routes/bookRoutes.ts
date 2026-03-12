@@ -16,7 +16,7 @@ const upload = require("../middlewares/uploadMiddleware");
 const router = Router();
 
 router.post(
-  "/",
+  "/admin/create-book",
   authenticate,
   adminOnly,
   upload.single("image"),
@@ -25,8 +25,14 @@ router.post(
   createBook,
 );
 
-router.get("/", getBooks);
-router.put("/:id", authenticate, adminOnly, validate, updateBook);
-router.delete("/:id", authenticate, adminOnly, deleteBook);
+router.get("/get-books", getBooks);
+router.put(
+  "/admin/update-book/:id",
+  authenticate,
+  adminOnly,
+  validate,
+  updateBook,
+);
+router.delete("/admin/delete-book/:id", authenticate, adminOnly, deleteBook);
 
 export default router;
