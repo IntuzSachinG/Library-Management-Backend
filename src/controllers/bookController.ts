@@ -1,21 +1,16 @@
 import { Request, Response } from "express";
-import { Book } from "../models";
-import { Op, WhereOptions } from "sequelize";
-// import cloudinary from "../config/cloudinary";
-// const fs = require("fs");
-// const path = require("path");
+import { Book, Issue } from "../models";
+import { BookAttributes } from "../interface/bookInterface";
+import { buildListQuery } from "../utils/listQuery";
+import { handleError } from "../utils/errorHandler";
 
 export const createBook = async (req: Request, res: Response) => {
   try {
     const { title, author, description, quantity, status } = req.body;
 
-    // const result = await cloudinary.uploader.upload(req.file!.path);
-    //  const result = await upload(req.file!.path);
-
     const book = await Book.create({
       title,
       author,
-      // image: result.secure_url,
       image: req.file!.filename,
       description,
       quantity,
@@ -27,125 +22,74 @@ export const createBook = async (req: Request, res: Response) => {
       message: "Book created successfully",
       data: book,
     });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Something went wrong",
-    });
+    // } catch (error: unknown) {
+    //   console.error("Create book error:", error);
+
+    //   return res.status(500).json({
+    //     success: false,
+    //     message: "Internal server error",
+    //   });
+    // }
+  } catch (err) {
+    handleError(
+      err,
+      res,
+      "Something went wrong on our end. The book could not be created. Please try again in a few minutes.",
+    );
   }
 };
 
 export const getBooks = async (req: Request, res: Response) => {
   try {
-    const {
-      page = "1",
-      limit = "10",
-      search,
-      sort_by = "created_at",
-      order = "desc",
-    } = req.query;
-
-    const pageNumber = parseInt(page as string);
-    const limitNumber = parseInt(limit as string);
-
-    if (isNaN(pageNumber) || pageNumber <= 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Page must be a number greater than 0",
-      });
-    }
-
-    if (isNaN(limitNumber) || limitNumber <= 0) {
-      return res.status(400).json({
-        success: false,
-        message: "limit must be a number greater than 0",
-      });
-    }
-
-    const offset = (pageNumber - 1) * limitNumber;
-
-    const whereCondition: any = {
-      deleted_at: null,
-    };
-
-    if (search) {
-      whereCondition[Op.or] = [
-        {
-          title: { [Op.like]: `%${search}%` },
-        },
-        {
-          author: { [Op.like]: `%${search}%` },
-        },
-        {
-          created_at: { [Op.like]: `%${search}%` },
-        },
-        {
-          id: { [Op.like]: `%${search}%` },
-        },
-        {
-          image: { [Op.like]: `%${search}%` },
-        },
-        {
-          description: { [Op.like]: `%${search}%` },
-        },
-        {
-          quantity: { [Op.like]: `%${search}%` },
-        },
-        {
-          status: { [Op.like]: `%${search}%` },
-        },
-        {
-          updated_at: { [Op.like]: `%${search}%` },
-        },
-      ];
-    }
-
-    const allowedSortFields = [
-      "title",
-      "author",
-      "created_at",
-      "id",
-      "image",
-      "description",
-      "quantity",
-      "status",
-      "updated_at",
-    ];
-    const sortField = allowedSortFields.includes(sort_by as string)
-      ? sort_by
-      : "created_at";
-
-    const allowedOrders = ["asc", "desc"];
-    const normalizedOrder = (order as string).toLowerCase();
-    if (order && !allowedOrders.includes(normalizedOrder)) {
-      return res.status(400).json({
-        error: "Invalid sortOrder. Use 'asc' or 'desc'.",
-      });
-    }
+    const query = buildListQuery<BookAttributes>({
+      req,
+      searchableFields: [
+        "title",
+        "author",
+        "created_at",
+        "id",
+        "image",
+        "description",
+        "quantity",
+        "status",
+        "updated_at",
+      ],
+      allowedSortFields: [
+        "title",
+        "author",
+        "created_at",
+        "id",
+        "image",
+        "description",
+        "quantity",
+        "status",
+        "updated_at",
+      ],
+    });
 
     const { count, rows } = await Book.findAndCountAll({
-      where: whereCondition,
-      limit: limitNumber,
-      offset,
-      order: [[sortField as string, normalizedOrder]],
+      where: query.whereCondition,
+      limit: query.limitNumber,
+      offset: query.offset,
+      order: [[query.sortField, query.normalizedOrder]],
     });
 
     return res.status(200).json({
       success: true,
-      message: "Books fetched successfully",
+      message: rows.length ? "Books fetched successfully" : "No books found",
       total: count,
-      page: pageNumber,
-      totalPages: Math.ceil(count / limitNumber),
+      page: query.pageNumber,
+      totalPages: Math.ceil(count / query.limitNumber),
       data: rows,
     });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Something went wrong",
-    });
+  } catch (err) {
+    handleError(
+      err,
+      res,
+      "We are currently experiencing technical difficulties. Please try again shortly",
+    );
   }
 };
-
 export const getBookById = async (req: Request, res: Response) => {
   try {
     const id = String(req.params.id);
@@ -164,11 +108,20 @@ export const getBookById = async (req: Request, res: Response) => {
       message: "Book fetched successfully",
       data: book,
     });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Something went wrong",
-    });
+    // } catch (error: unknown) {
+    //   console.error("Get book error:", error);
+
+    //   return res.status(500).json({
+    //     success: false,
+    //     message: "Internal server error",
+    //   });
+    // }
+  } catch (err) {
+    handleError(
+      err,
+      res,
+      "We are currently experiencing technical difficulties. Please try again shortly",
+    );
   }
 };
 
@@ -185,6 +138,20 @@ export const updateBook = async (req: Request, res: Response) => {
       });
     }
 
+    const issuedCount = await Issue.count({
+      where: {
+        bookId: id,
+        status: "issued",
+      },
+    });
+
+    if (req.body.quantity !== undefined && req.body.quantity < issuedCount) {
+      return res.status(400).json({
+        success: false,
+        message: "Quantity cannot be less than issued books",
+      });
+    }
+
     await book.update(req.body);
 
     res.json({
@@ -192,11 +159,20 @@ export const updateBook = async (req: Request, res: Response) => {
       message: "Book updated successfully",
       data: book,
     });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Something went wrong",
-    });
+    // } catch (error: unknown) {
+    //   console.error("Update book error:", error);
+
+    //   return res.status(500).json({
+    //     success: false,
+    //     message: "Internal server error",
+    //   });
+    // }
+  } catch (err) {
+    handleError(
+      err,
+      res,
+      "The update could not be completed due to a temporary server issue.",
+    );
   }
 };
 
@@ -213,16 +189,39 @@ export const deleteBook = async (req: Request, res: Response) => {
       });
     }
 
+    const issuedBook = await Issue.findOne({
+      where: {
+        bookId: id,
+        status: "issued",
+      },
+    });
+
+    if (issuedBook) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot delete book. It is currently issued",
+      });
+    }
+
     await book.destroy();
 
     res.json({
       success: true,
       message: "Book deleted successfully",
     });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Something went wrong",
-    });
+    // } catch (error: unknown) {
+    //   console.error("Delete book error:", error);
+
+    //   return res.status(500).json({
+    //     success: false,
+    //     message: "Internal server error",
+    //   });
+    // }
+  } catch (err) {
+    handleError(
+      err,
+      res,
+      "Try again in a few moments. The issue might be temporary",
+    );
   }
 };

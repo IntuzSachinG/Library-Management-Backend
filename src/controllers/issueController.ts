@@ -1,24 +1,65 @@
 import { Request, Response } from "express";
-import { Issue, Book } from "../models";
-import { Op } from "sequelize";
+import { Issue, Book, User, sequelize } from "../models";
+import { Op, WhereOptions } from "sequelize";
+import { UserAttributes } from "../interface/userInterface";
+import { IssueAttributes } from "../interface/issueInterface";
+import { buildListQuery } from "../utils/listQuery";
+import { handleError } from "../utils/errorHandler";
 
 export const issueBook = async (req: Request, res: Response) => {
   try {
-    // const { userId, bookId } = req.body;
-
     const userId = req.user.id;
 
-    const{bookId} = req.body;
+    const { bookId } = req.body;
+
+    const user = await User.findByPk(userId);
+
+    if (!user || user.deleted_at !== null || user.status !== "active") {
+      return res.status(403).json({
+        success: false,
+        message: "User account inactive or deleted",
+      });
+    }
 
     const issuedCount = await Issue.count({
       where: { userId, status: "issued" },
-      //  where: {  status: "issued" },
     });
 
     if (issuedCount >= 3) {
       return res.status(400).json({
         success: false,
         message: "User cannot issue more than 3 books",
+      });
+    }
+
+    const existingIssue = await Issue.findOne({
+      where: {
+        userId,
+        bookId,
+        status: "issued",
+      },
+    });
+
+    if (existingIssue) {
+      return res.status(400).json({
+        success: false,
+        message: "You already issued this book",
+      });
+    }
+
+    const book = await Book.findByPk(bookId);
+
+    if (!book) {
+      return res.status(404).json({
+        success: false,
+        message: "Book not found",
+      });
+    }
+
+    if (book.quantity <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Book out of stock",
       });
     }
 
@@ -29,16 +70,24 @@ export const issueBook = async (req: Request, res: Response) => {
       issueDate: new Date(),
     });
 
+    book.quantity -= 1;
+    await book.save();
+
     res.status(201).json({
       success: true,
       message: "Book issued successfully",
       data: issue,
     });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Something went wrong",
-    });
+    // } catch (error: unknown) {
+    //   console.error("Issue book error:", error);
+
+    //   return res.status(500).json({
+    //     success: false,
+    //     message: "Internal server error",
+    //   });
+    // }
+  } catch (err) {
+    handleError(err, res, "Try again later,Contact Support");
   }
 };
 
@@ -54,120 +103,81 @@ export const returnBook = async (req: Request, res: Response) => {
         message: "Issue record not found",
       });
     }
-    
+
+    if (issue.status === "returned") {
+      return res.status(400).json({
+        success: false,
+        message: "Book already returned",
+      });
+    }
+
+    const book = await Book.findByPk(issue.bookId);
+
     issue.status = "returned";
     issue.returnDate = new Date();
 
     await issue.save();
+
+    if (book) {
+      book.quantity += 1;
+      await book.save();
+    }
 
     res.json({
       success: true,
       message: "Book returned successfully",
       data: issue,
     });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Something went wrong",
-    });
+    // } catch (error: unknown) {
+    //   console.error("Return book error:", error);
+
+    //   return res.status(500).json({
+    //     success: false,
+    //     message: "Internal server error",
+    //   });
+    // }
+  } catch (err) {
+    handleError(
+      err,
+      res,
+      "We're sorry, we can't process your return right now due to a temporary system issue. Please try again in a few minutes.",
+    );
   }
 };
 
 export const getUserIssues = async (req: Request, res: Response) => {
   try {
-    const {
-      page = "1",
-      limit = "10",
-      search,
-      sort_by = "created_at",
-      order = "desc",
-    } = req.query;
-
-    const pageNumber = parseInt(page as string);
-    const limitNumber = parseInt(limit as string);
-
-    if (isNaN(pageNumber) || pageNumber <= 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Page must be a number greater than 0",
-      });
-    }
-
-    if (isNaN(limitNumber) || limitNumber <= 0) {
-      return res.status(400).json({
-        success: false,
-        message: "limit must be a number greater than 0",
-      });
-    }
-
-    const offset = (pageNumber - 1) * limitNumber;
-
-    const whereCondition: any = {
-      deleted_at: null,
-    };
-
-    if (search) {
-      whereCondition[Op.or] = [
-        {
-          status: { [Op.like]: `%${search}%` },
-        },
-        {
-          userId: { [Op.like]: `%${search}%` },
-        },
-        {
-          bookId: { [Op.like]: `%${search}%` },
-        },
-        {
-          id: { [Op.like]: `%${search}%` },
-        },
-      ];
-    }
-
-    const allowedSortFields = ["userId", "bookId", "status", "id"];
-    const sortField = allowedSortFields.includes(sort_by as string)
-      ? sort_by
-      : "created_at";
-
-    const allowedOrders = ["asc", "desc"];
-    const normalizedOrder = (order as string).toLowerCase();
-    if (order && !allowedOrders.includes(normalizedOrder)) {
-      return res.status(400).json({
-        error: "Invalid sortOrder. Use 'asc' or 'desc'.",
-      });
-    }
+    const query = buildListQuery<IssueAttributes>({
+      req,
+      searchableFields: ["status", "userId", "bookId", "id"],
+      allowedSortFields: ["userId", "bookId", "status", "id"],
+    });
 
     const { count, rows } = await Issue.findAndCountAll({
-      // where: {
-      //   ...whereCondition,
-      //   userId: req.user.id,
-      // },
-      where: whereCondition,
-      // include: [
-      //   {
-      //     model: Book,
-      //     as: "book",
-      //     attributes: ["id", "title"],
-      //   },
-      // ],
-
-      limit: limitNumber,
-      offset,
-      order: [[sortField as string, normalizedOrder]],
+      where: query.whereCondition,
+      limit: query.limitNumber,
+      offset: query.offset,
+      order: [[query.sortField, query.normalizedOrder]],
     });
 
     return res.status(200).json({
       success: true,
       message: "Issues fetched successfully",
       total: count,
-      page: pageNumber,
-      totalPages: Math.ceil(count / limitNumber),
+      page: query.pageNumber,
+      totalPages: Math.ceil(count / query.limitNumber),
       data: rows,
     });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Something went wrong",
-    });
+    // } catch (error: unknown) {
+    //   if (error instanceof Error) {
+    //     return res.status(500).json({
+    //       success: false,
+    //       message: error.message,
+    //     });
+    //   }
+    // }
+  } catch (err) {
+    handleError(err, res, "Technical issue from server try after some time");
   }
 };
 
@@ -195,10 +205,15 @@ export const getMyIssues = async (req: Request, res: Response) => {
       message: "User issues fetched successfully",
       data: issues,
     });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Something went wrong",
-    });
+    // } catch (error: unknown) {
+    //   console.error("Get my issues error:", error);
+
+    //   return res.status(500).json({
+    //     success: false,
+    //     message: "Internal server error",
+    //   });
+    // }
+  } catch (err) {
+    handleError(err, res, "Technical issue from server try after some time");
   }
 };

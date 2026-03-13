@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import { User } from "../models";
 import { generateToken } from "../utils/jwt";
+import { handleError } from "../utils/errorHandler";
 
 export const register = async (req: Request, res: Response) => {
   try {
@@ -32,13 +33,22 @@ export const register = async (req: Request, res: Response) => {
     res.status(201).json({
       success: true,
       message: "User registered successfully",
-      data: [ user ],
+      data: [user],
     });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Something went wrong",
-    });
+    // } catch (error: unknown) {
+    //   console.error("Register Error:", error);
+
+    //   return res.status(500).json({
+    //     success: false,
+    //     message: "Internal server error",
+    //   });
+    // }
+  } catch (err) {
+    handleError(
+      err,
+      res,
+      "Registration failed due to a technical issue. Please try again in a few minutes",
+    );
   }
 };
 
@@ -68,15 +78,24 @@ export const login = async (req: Request, res: Response) => {
 
     res.json({
       success: true,
-      message: "Login Successfull",
-      // user,
-      data: [ user ],
+      message: "Login Successfully",
+
+      data: [user],
       token,
     });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Something went wrong",
-    });
+    // } catch (error: unknown) {
+    //   console.error("Login Error:", error);
+
+    //   return res.status(500).json({
+    //     success: false,
+    //     message: "Internal server error",
+    //   });
+    // }
+  } catch (err) {
+    handleError(
+      err,
+      res,
+      "An unexpected error occurred. Please try again later.",
+    );
   }
 };
