@@ -3,15 +3,19 @@ import { Book, Issue } from "../models";
 import { BookAttributes } from "../interface/bookInterface";
 import { buildListQuery } from "../utils/listQuery";
 import { handleError } from "../utils/errorHandler";
+import cloudinary from "../config/cloudinary";
 
 export const createBook = async (req: Request, res: Response) => {
   try {
     const { title, author, description, quantity, status } = req.body;
 
+     const result = await cloudinary.uploader.upload(req.file!.path);
+
     const book = await Book.create({
       title,
       author,
-      image: req.file!.filename,
+      // image: req.file!.filename,
+       image: result.secure_url,
       description,
       quantity,
       status,

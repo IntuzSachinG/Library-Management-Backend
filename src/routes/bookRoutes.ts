@@ -11,9 +11,11 @@ import { adminOnly } from "../middlewares/roleMiddleware";
 
 import { validate } from "../middlewares/validationMiddleware";
 import { bookValidator } from "../validators/bookValidator";
-const upload = require("../middlewares/uploadMiddleware");
+// const upload = require("../middlewares/uploadMiddleware");
 
 const router = Router();
+
+const upload = multer({dest:"uploads/"});
 
 router.post(
   "/admin/create-book",
