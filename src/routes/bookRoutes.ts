@@ -5,6 +5,7 @@ import {
   getBooks,
   updateBook,
   deleteBook,
+  getBookById,
 } from "../controllers/bookController";
 import { authenticate } from "../middlewares/authMiddleware";
 import { adminOnly } from "../middlewares/roleMiddleware";
@@ -15,7 +16,7 @@ import { bookValidator } from "../validators/bookValidator";
 
 const router = Router();
 
-const upload = multer({dest:"uploads/"});
+const upload = multer({ dest: "uploads/" });
 
 router.post(
   "/admin/create-book",
@@ -28,11 +29,12 @@ router.post(
 );
 
 router.get("/get-books", getBooks);
+router.get("/book/:id", getBookById);
 router.put(
   "/admin/update-book/:id",
   authenticate,
   adminOnly,
-    upload.single("image"),
+  upload.single("image"),
   validate,
   updateBook,
 );
