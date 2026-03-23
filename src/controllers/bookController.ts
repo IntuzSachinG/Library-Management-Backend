@@ -142,6 +142,11 @@ export const updateBook = async (req: Request, res: Response) => {
       });
     }
 
+    if (req.file) {
+      const result = await cloudinary.uploader.upload(req.file.path);
+      req.body.image = result.secure_url;
+    }
+
     const issuedCount = await Issue.count({
       where: {
         bookId: id,

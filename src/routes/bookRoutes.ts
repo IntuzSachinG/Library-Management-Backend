@@ -32,6 +32,7 @@ router.put(
   "/admin/update-book/:id",
   authenticate,
   adminOnly,
+    upload.single("image"),
   validate,
   updateBook,
 );
