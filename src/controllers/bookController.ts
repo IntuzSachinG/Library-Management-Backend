@@ -9,13 +9,13 @@ export const createBook = async (req: Request, res: Response) => {
   try {
     const { title, author, description, quantity, status } = req.body;
 
-     const result = await cloudinary.uploader.upload(req.file!.path);
+    const result = await cloudinary.uploader.upload(req.file!.path);
 
     const book = await Book.create({
       title,
       author,
       // image: req.file!.filename,
-       image: result.secure_url,
+      image: result.secure_url,
       description,
       quantity,
       status,
