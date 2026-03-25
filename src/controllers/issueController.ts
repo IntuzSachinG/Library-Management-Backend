@@ -299,6 +299,13 @@ export const getMyIssues = async (req: Request, res: Response) => {
       },
       include: [
         {
+
+           
+          model: User,
+          as: "user",
+          attributes: ["id", "name", "email"],
+        },
+        {
           model: Book,
           as: "book",
           attributes: ["id", "title", "image", "author"],
