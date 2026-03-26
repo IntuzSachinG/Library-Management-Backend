@@ -242,7 +242,14 @@ export const getUserIssues = async (req: Request, res: Response) => {
     const query = buildListQuery<IssueAttributes>({
       req,
       searchableFields: ["status", "userId", "bookId", "id"],
-      allowedSortFields: ["userId", "bookId", "status", "id"],
+      allowedSortFields: [
+        "userId",
+        "bookId",
+        "status",
+        "id",
+        "created_at",
+        "issueDate",
+      ],
     });
 
     const { count, rows } = await Issue.findAndCountAll({
@@ -299,8 +306,6 @@ export const getMyIssues = async (req: Request, res: Response) => {
       },
       include: [
         {
-
-           
           model: User,
           as: "user",
           attributes: ["id", "name", "email"],

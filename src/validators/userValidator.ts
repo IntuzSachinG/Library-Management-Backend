@@ -15,10 +15,16 @@ export const registerValidator = [
   body("password")
     .isLength({ min: 6 })
     .withMessage("Minimum length of password must be 6 digit or above"),
+  // body("mobile")
+  // .optional()
+  //   .matches(mobile)
+  //   .withMessage("Invalid mobile number format"),
+
   body("mobile")
-  .optional()
-    .matches(mobile)
+    .optional({ nullable: true, checkFalsy: true })
+    .matches(/^\+?[1-9]\d{1,14}$/)
     .withMessage("Invalid mobile number format"),
+
   body("gender").isIn(["male", "female", "other"]),
   body("birthdate").isDate(),
 ];

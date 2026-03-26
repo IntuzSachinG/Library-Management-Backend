@@ -19,7 +19,7 @@ export const authenticate = async (
     //   return res.status(401).json({ success: false, message: "Unauthorized" });
     // }
 
-     const token = req.cookies?.token; 
+    const token = req.cookies?.token;
 
     if (!token) {
       return res.status(401).json({ message: "Unauthorized" });
@@ -28,7 +28,7 @@ export const authenticate = async (
     // const token = authHeader.split(" ")[1];
     // const decoded: any = jwt.verify(token, JWT_SECRET);
     // const decoded = jwt.verify(token, JWT_SECRET) as JWTPayload;
-     const decoded:any = jwt.verify(token, JWT_SECRET) 
+    const decoded: any = jwt.verify(token, JWT_SECRET);
     const user = await User.findByPk(decoded.id);
     if (!user)
       return res.status(401).json({ success: false, message: "Unauthorized" });

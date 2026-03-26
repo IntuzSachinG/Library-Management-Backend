@@ -47,14 +47,30 @@ User.init(
       unique: true,
     },
     // update this
+    // mobile: {
+    //   type: DataTypes.STRING,
+    //   allowNull: true,
+    //   unique: true,
+    //   validate: {
+    //     isNumeric: true,
+    //     // len: [10, 10],
+    //     is: /^\+?[1-9]\d{1,14}$/,
+    //   },
+    // },
+
     mobile: {
       type: DataTypes.STRING,
       allowNull: true,
       unique: true,
       validate: {
-        isNumeric: true,
-        // len: [10, 10],
-        is: /^\+?[1-9]\d{1,14}$/,
+        isValidMobile(value: string | null) {
+          if (!value) return;
+
+          const match = /^\+?[1-9]\d{1,14}$/;
+          if (!match.test(value)) {
+            throw new Error("Invalid mobile number format");
+          }
+        },
       },
     },
     // update this
