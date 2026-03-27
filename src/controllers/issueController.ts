@@ -336,3 +336,39 @@ export const getMyIssues = async (req: Request, res: Response) => {
     handleError(err, res, "Technical issue from server try after some time");
   }
 };
+
+
+export const deleteIssue = async (req: Request, res: Response) => {
+  try {
+    // const { id } = req.params;
+
+     const id = String(req.params.id);
+
+    const issue = await Issue.findByPk(id);
+
+    // const issue = await Issue.findByPk(id);
+
+    if (!issue) {
+      return res.status(404).json({
+        message: "Issue not found",
+      });
+    }
+
+    
+    if (issue.status !== "returned") {
+      return res.status(400).json({
+        message: "Only returned books history can be deleted",
+      });
+    }
+
+    await issue.destroy();
+
+    return res.json({
+      message: "Issue history deleted successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Server error",
+    });
+  }
+};

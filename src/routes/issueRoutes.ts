@@ -4,6 +4,7 @@ import {
   returnBook,
   getUserIssues,
   getMyIssues,
+  deleteIssue,
 } from "../controllers/issueController";
 import { authenticate } from "../middlewares/authMiddleware";
 import {
@@ -34,5 +35,7 @@ router.patch(
 // router.get("/", authenticate, getUserIssues);
 router.get("/", authenticate, adminOnly, getUserIssues);
 router.get("/user-see-issue-book-record", authenticate, getMyIssues);
+
+router.delete("/:id",authenticate, deleteIssue);
 
 export default router;
