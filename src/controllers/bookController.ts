@@ -1,40 +1,26 @@
 import { Request, Response } from "express";
-import { Book, Issue } from "../models";
+import { BookService } from "../services/bookService";
 import { BookAttributes } from "../interface/bookInterface";
 import { buildListQuery } from "../utils/listQuery";
 import { handleError } from "../utils/errorHandler";
-import cloudinary from "../config/cloudinary";
+import { ServiceError } from "../utils/errors";
 
 export const createBook = async (req: Request, res: Response) => {
   try {
-    const { title, author, description, quantity, status } = req.body;
-
-    const result = await cloudinary.uploader.upload(req.file!.path);
-
-    const book = await Book.create({
-      title,
-      author,
-      // image: req.file!.filename,
-      image: result.secure_url,
-      description,
-      quantity,
-      status,
-    });
+    const book = await BookService.createBook(req.body, req.file?.path);
 
     res.status(201).json({
       success: true,
       message: "Book created successfully",
       data: book,
     });
-    // } catch (error: unknown) {
-    //   console.error("Create book error:", error);
-
-    //   return res.status(500).json({
-    //     success: false,
-    //     message: "Internal server error",
-    //   });
-    // }
-  } catch (err) {
+  } catch (err: any) {
+    if (err instanceof ServiceError) {
+      return res.status(err.statusCode).json({
+        success: false,
+        message: err.message,
+      });
+    }
     handleError(
       err,
       res,
@@ -71,7 +57,7 @@ export const getBooks = async (req: Request, res: Response) => {
       ],
     });
 
-    const { count, rows } = await Book.findAndCountAll({
+    const { count, rows } = await BookService.getBooks({
       where: query.whereCondition,
       limit: query.limitNumber,
       offset: query.offset,
@@ -94,33 +80,24 @@ export const getBooks = async (req: Request, res: Response) => {
     );
   }
 };
+
 export const getBookById = async (req: Request, res: Response) => {
   try {
     const id = String(req.params.id);
-
-    const book = await Book.findByPk(id);
-
-    if (!book) {
-      return res.status(404).json({
-        success: false,
-        message: "Book not found",
-      });
-    }
+    const book = await BookService.getBookById(id);
 
     res.json({
       success: true,
       message: "Book fetched successfully",
       data: book,
     });
-    // } catch (error: unknown) {
-    //   console.error("Get book error:", error);
-
-    //   return res.status(500).json({
-    //     success: false,
-    //     message: "Internal server error",
-    //   });
-    // }
-  } catch (err) {
+  } catch (err: any) {
+    if (err instanceof ServiceError) {
+      return res.status(err.statusCode).json({
+        success: false,
+        message: err.message,
+      });
+    }
     handleError(
       err,
       res,
@@ -132,51 +109,20 @@ export const getBookById = async (req: Request, res: Response) => {
 export const updateBook = async (req: Request, res: Response) => {
   try {
     const id = String(req.params.id);
-
-    const book = await Book.findByPk(id);
-
-    if (!book) {
-      return res.status(404).json({
-        success: false,
-        message: "Book not found",
-      });
-    }
-
-    if (req.file) {
-      const result = await cloudinary.uploader.upload(req.file.path);
-      req.body.image = result.secure_url;
-    }
-
-    const issuedCount = await Issue.count({
-      where: {
-        bookId: id,
-        status: "issued",
-      },
-    });
-
-    if (req.body.quantity !== undefined && req.body.quantity < issuedCount) {
-      return res.status(400).json({
-        success: false,
-        message: "Quantity cannot be less than issued books",
-      });
-    }
-
-    await book.update(req.body);
+    const book = await BookService.updateBook(id, req.body, req.file?.path);
 
     res.json({
       success: true,
       message: "Book updated successfully",
       data: book,
     });
-    // } catch (error: unknown) {
-    //   console.error("Update book error:", error);
-
-    //   return res.status(500).json({
-    //     success: false,
-    //     message: "Internal server error",
-    //   });
-    // }
-  } catch (err) {
+  } catch (err: any) {
+    if (err instanceof ServiceError) {
+      return res.status(err.statusCode).json({
+        success: false,
+        message: err.message,
+      });
+    }
     handleError(
       err,
       res,
@@ -188,45 +134,19 @@ export const updateBook = async (req: Request, res: Response) => {
 export const deleteBook = async (req: Request, res: Response) => {
   try {
     const id = String(req.params.id);
-
-    const book = await Book.findByPk(id);
-
-    if (!book) {
-      return res.status(404).json({
-        success: false,
-        message: "Book not found",
-      });
-    }
-
-    const issuedBook = await Issue.findOne({
-      where: {
-        bookId: id,
-        status: "issued",
-      },
-    });
-
-    if (issuedBook) {
-      return res.status(400).json({
-        success: false,
-        message: "Cannot delete book. It is currently issued",
-      });
-    }
-
-    await book.destroy();
+    await BookService.deleteBook(id);
 
     res.json({
       success: true,
       message: "Book deleted successfully",
     });
-    // } catch (error: unknown) {
-    //   console.error("Delete book error:", error);
-
-    //   return res.status(500).json({
-    //     success: false,
-    //     message: "Internal server error",
-    //   });
-    // }
-  } catch (err) {
+  } catch (err: any) {
+    if (err instanceof ServiceError) {
+      return res.status(err.statusCode).json({
+        success: false,
+        message: err.message,
+      });
+    }
     handleError(
       err,
       res,
@@ -234,3 +154,4 @@ export const deleteBook = async (req: Request, res: Response) => {
     );
   }
 };
+
